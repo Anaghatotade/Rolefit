@@ -90,13 +90,13 @@ Backend checks all required env vars on boot and exits with a clear error if som
 ![Report Generation Sequence](docs/sequence-diagram.png)
 
 ### Landing Page
-![RoleFit Landing Page](docs/landing.png)
+![RoleFit Landing Page](docs/landing.jpeg)
 
 ### Dashboard
-![RoleFit Dashboard](docs/dashboard.png)
+![RoleFit Dashboard](docs/dashboard.jpeg)
 
 ### AI Readiness Report
-![AI Readiness Report](docs/report.png)
+![AI Readiness Report](docs/report.jpeg)
 
 ### Career Copilot
-![Career Copilot](docs/copilot.png)
+![Career Copilot](docs/copilot.jpeg)
