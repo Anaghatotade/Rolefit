@@ -71,7 +71,7 @@ Backend checks all required env vars on boot and exits with a clear error if som
 - Multer checks file type + size on resume upload
 - Rate limiting, tighter on the AI-calling routes since those cost actual money per request
 - `helmet` for the usual security headers
-- One error handler for the whole app — logs the real error server-side, never leaks internals in the response
+- One error handler for the whole app - logs the real error server-side, never leaks internals in the response
 
 ## Known limitations
 
