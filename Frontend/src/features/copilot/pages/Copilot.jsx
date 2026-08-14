@@ -9,14 +9,18 @@ const QUICK_PROMPTS = [
     "How should I structure my answer to the first technical question?",
     "Rewrite my elevator pitch for this specific role"
 ]
-const HISTORY_ENTRY_CHAR_CAP = 4000
+
+const HISTORY_ENTRY_CHAR_CAP = 4000 // must match copilotMessageSchema on the backend
 
 function buildHistoryPayload(messages) {
     return messages.slice(-20).map((m) => ({
         role: m.role,
-        content: m.content.length > HISTORY_ENTRY_CHAR_CAP ? m.content.slice(0, HISTORY_ENTRY_CHAR_CAP) : m.content
+        content: m.content.length > HISTORY_ENTRY_CHAR_CAP
+            ? m.content.slice(0, HISTORY_ENTRY_CHAR_CAP)
+            : m.content
     }))
 }
+
 export default function Copilot() {
     const { id } = useParams()
     const [ report, setReport ] = useState(null)
@@ -28,6 +32,7 @@ export default function Copilot() {
     const [ sending, setSending ] = useState(false)
     const [ sendError, setSendError ] = useState(null)
     const threadEndRef = useRef(null)
+    const inputRef = useRef(null)
 
     useEffect(() => {
         fetchReportById(id)
@@ -37,7 +42,7 @@ export default function Copilot() {
     }, [ id ])
 
     useEffect(() => {
-        threadEndRef.current?.scrollIntoView({ behavior: "smooth" })
+        threadEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
     }, [ messages, sending ])
 
     async function handleSend(text) {
@@ -51,21 +56,30 @@ export default function Copilot() {
         setSending(true)
 
         try {
-            // Send the last 20 turns as history — matches the backend's cap,
-            // and keeps the prompt from growing unbounded in a long session.
             const data = await sendCopilotMessage(id, {
                 message: trimmed,
-                history: messages.slice(-20)
+                history: buildHistoryPayload(messages)
             })
             setMessages([ ...nextMessages, { role: "assistant", content: data.reply } ])
         } catch (err) {
             setSendError(err.message)
-            // Roll back the optimistic user message on failure so a retry
-            // doesn't duplicate it in history sent to the backend.
             setMessages(messages)
         } finally {
             setSending(false)
+            inputRef.current?.focus()
         }
+    }
+
+    function handleKeyDown(e) {
+        if (e.key === "Enter" && sending) {
+            e.preventDefault()
+        }
+    }
+
+    function handleClearChat() {
+        setMessages([])
+        setSendError(null)
+        inputRef.current?.focus()
     }
 
     if (loadingReport) return <div className="container page"><SkeletonLines count={4} /></div>
@@ -78,16 +92,30 @@ export default function Copilot() {
 
                 <h1 style={{ marginBottom: "var(--space-2)" }}>Career Copilot</h1>
                 <div className="banner" style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", marginBottom: "var(--space-5)" }}>
-                    Chatting about: <strong style={{ marginLeft: 4 }}>{report.jobDescription.slice(0, 80)}{report.jobDescription.length > 80 ? "..." : ""}</strong>
+                    <span className="copilot-context-text">
+                        Chatting about: <strong>{report.jobDescription.slice(0, 80)}{report.jobDescription.length > 80 ? "..." : ""}</strong>
+                    </span>
                     <span className="badge badge-neutral" style={{ marginLeft: "auto" }}>{report.matchScore}% match</span>
                 </div>
 
-                <div className="card" style={{ minHeight: 360, display: "flex", flexDirection: "column" }}>
-                    <div className="chat-thread" style={{ flex: 1, marginBottom: "var(--space-4)" }}>
+                <div className="card chat-card">
+                    <div className="chat-card-header">
+                        <span className="hint">{messages.length === 0 ? "Ask anything about this report" : `${messages.length} message${messages.length === 1 ? "" : "s"}`}</span>
+                        <button
+                            type="button"
+                            className="btn btn-ghost btn-sm"
+                            onClick={handleClearChat}
+                            disabled={messages.length === 0 && !sendError}
+                        >
+                            Clear chat
+                        </button>
+                    </div>
+
+                    <div className="chat-thread">
                         {messages.length === 0 && (
                             <div className="chat-suggestions">
                                 {QUICK_PROMPTS.map((p) => (
-                                    <button key={p} className="chip" onClick={() => handleSend(p)}>{p}</button>
+                                    <button key={p} type="button" className="chip" onClick={() => handleSend(p)}>{p}</button>
                                 ))}
                             </div>
                         )}
@@ -97,27 +125,31 @@ export default function Copilot() {
                             </div>
                         ))}
                         {sending && (
-                            <div className="chat-bubble chat-bubble-assistant" style={{ color: "var(--color-text-faint)" }}>
-                                Copilot is thinking...
+                            <div className="chat-bubble chat-bubble-assistant chat-typing" aria-live="polite">
+                                <span className="typing-dot" />
+                                <span className="typing-dot" />
+                                <span className="typing-dot" />
                             </div>
                         )}
                         <div ref={threadEndRef} />
                     </div>
 
-                    {sendError && <div className="banner banner-error" role="alert" style={{ marginBottom: "var(--space-3)" }}>{sendError}</div>}
+                    {sendError && <div className="banner banner-error" role="alert" style={{ margin: "0 var(--space-4) var(--space-3)" }}>{sendError}</div>}
 
-                    <form
-                        className="row"
-                        onSubmit={(e) => { e.preventDefault(); handleSend() }}
-                    >
+                    <form className="chat-input-row" onSubmit={(e) => { e.preventDefault(); handleSend() }}>
                         <input
+                            ref={inputRef}
                             className="input"
                             placeholder="Ask about your gaps, answers, or resume..."
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             maxLength={1000}
+                            autoFocus
                         />
-                        <button className="btn btn-primary" type="submit" disabled={sending || !input.trim()}>Send</button>
+                        <button className="btn btn-primary" type="submit" disabled={sending || !input.trim()}>
+                            {sending ? "..." : "Send"}
+                        </button>
                     </form>
                 </div>
             </div>
