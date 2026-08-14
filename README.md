@@ -12,7 +12,7 @@ Most resume-matcher tools stop at the report. You get a score, maybe some bullet
 
 ```
 Frontend (React + Vite)              Backend (Express + MongoDB Atlas)
-├─ features/marketing (landing)      ├─ routes → middlewares → controllers
+├─ features/marketing (landing)      ├─ routes -> middlewares -> controllers
 ├─ features/auth                     ├─ services/ai.service.js (Gemini)
 ├─ features/readiness (dashboard)    ├─ models (Mongoose)
 ├─ features/practice                 └─ centralized error handling
@@ -26,7 +26,7 @@ Routes: `/` (landing) -> `/login` / `/register` -> `/dashboard` (protected) -> `
 
 ### Report generation flow
 
-Resume PDF (multipart) -> Multer (in-memory, checks mimetype) -> `pdf-parse` extracts the text -> Gemini generates match score + questions + skill gaps + prep plan, constrained to a Zod schema (converted via `zod-to-json-schema` and passed as Gemini's `responseSchema`) -> validated *again* with the same Zod schema on the way back (constrained output reduces bad responses, doesn't guarantee them) → saved to MongoDB scoped to the logged-in user.
+Resume PDF (multipart) -> Multer (in-memory, checks mimetype) -> `pdf-parse` extracts the text -> Gemini generates match score + questions + skill gaps + prep plan, constrained to a Zod schema (converted via `zod-to-json-schema` and passed as Gemini's `responseSchema`) -> validated *again* with the same Zod schema on the way back (constrained output reduces bad responses, doesn't guarantee them) -> saved to MongoDB scoped to the logged-in user.
 
 ### Practice mode flow
 
