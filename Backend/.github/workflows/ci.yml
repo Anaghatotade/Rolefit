@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    name: Backend (install, test, build check)
+    runs-on: ubuntu-latest
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: "true" # CI only installs deps and runs unit tests; no headless Chrome needed
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Backend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: Backend
+        run: npm test
+
+      - name: Verify app module loads (build check)
+        working-directory: Backend
+        run: node -e "require('./src/app.js'); console.log('Backend app module loads OK')"
+
+  frontend:
+    name: Frontend (install, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: Frontend
+        run: npm run build
