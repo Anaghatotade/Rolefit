@@ -67,7 +67,7 @@ Backend checks all required env vars on boot and exits with a clear error if som
 - httpOnly/secure/sameSite cookie
 - bcrypt for passwords
 - Zod validation on every endpoint that mutates data, before it touches the DB or calls Gemini
-- Ownership checks on report/PDF lookups — originally any logged-in user could grab another user's report just by knowing the ID (IDOR), fixed by scoping every query to the requesting user
+- Ownership checks on report/PDF lookups - originally any logged-in user could grab another user's report just by knowing the ID (IDOR), fixed by scoping every query to the requesting user
 - Multer checks file type + size on resume upload
 - Rate limiting, tighter on the AI-calling routes since those cost actual money per request
 - `helmet` for the usual security headers
