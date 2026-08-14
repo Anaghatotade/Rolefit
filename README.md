@@ -112,3 +112,17 @@ with a clear message if any are missing — it won't start into a broken state.
   independently
 - Copilot conversations aren't persisted — refreshing the page clears chat
   history for that session (the report data itself is unaffected)
+
+## Screenshots
+
+### Landing Page
+![RoleFit Landing Page](docs/landing.png)
+
+### Dashboard
+![RoleFit Dashboard](docs/dashboard.png)
+
+### AI Readiness Report
+![AI Readiness Report](docs/report.png)
+
+### Career Copilot
+![Career Copilot](docs/copilot.png)
