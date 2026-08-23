@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { fetchReportById } from "../../readiness/services/readiness.api"
 import { sendCopilotMessage } from "../services/copilot.api"
+import { buildHistoryPayload } from "../utils/history"
 import { SkeletonLines } from "../../../components/Feedback"
 
 const QUICK_PROMPTS = [
@@ -9,17 +10,6 @@ const QUICK_PROMPTS = [
     "How should I structure my answer to the first technical question?",
     "Rewrite my elevator pitch for this specific role"
 ]
-
-const HISTORY_ENTRY_CHAR_CAP = 4000 // must match copilotMessageSchema on the backend
-
-function buildHistoryPayload(messages) {
-    return messages.slice(-20).map((m) => ({
-        role: m.role,
-        content: m.content.length > HISTORY_ENTRY_CHAR_CAP
-            ? m.content.slice(0, HISTORY_ENTRY_CHAR_CAP)
-            : m.content
-    }))
-}
 
 export default function Copilot() {
     const { id } = useParams()

@@ -1,36 +1,3 @@
-// const pdfParse = require("pdf-parse")
-// const puppeteer = require("puppeteer")
-// const ReadinessReport = require("../models/readinessReport.model")
-// const ApiError = require("../utils/ApiError")
-// const asyncHandler = require("../utils/asyncHandler")
-// const { generateReadinessReport, generateTailoredResumeHtml } = require("../services/ai.service")
-
-// const createReport = asyncHandler(async (req, res) => {
-//     if (!req.file) {
-//         throw new ApiError(400, "Resume PDF is required")
-//     }
-
-//     const { jobDescription, selfDescription } = req.body
-
-//     const parsed = await pdfParse(req.file.buffer)
-//     const resumeText = parsed.text.trim()
-
-//     if (resumeText.length < 50) {
-//         throw new ApiError(400, "Couldn't extract enough text from this PDF. Please upload a text-based resume, not a scanned image.")
-//     }
-
-//     const aiResult = await generateReadinessReport({ jobDescription, selfDescription, resumeText })
-
-//     const report = await ReadinessReport.create({
-//         user: req.user.id,
-//         jobDescription,
-//         selfDescription,
-//         resumeText,
-//         ...aiResult
-//     })
-
-//     res.status(201).json({ message: "Readiness report generated", report })
-// })
 const { PDFParse } = require("pdf-parse")
 const puppeteer = require("puppeteer")
 const ReadinessReport = require("../models/readinessReport.model")

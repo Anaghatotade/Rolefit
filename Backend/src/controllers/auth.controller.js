@@ -25,10 +25,11 @@ const asyncHandler = require("../utils/asyncHandler")
  * code, accepting sameSite as "strong mitigation," not "complete immunity."
  */
 function cookieOptions() {
+    const isProd = process.env.NODE_ENV === "production"
     return {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
         maxAge: 24 * 60 * 60 * 1000
     }
 }

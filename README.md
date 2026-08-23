@@ -8,6 +8,8 @@ Upload your resume + a job description -> get a match score, likely technical/be
 
 Most resume-matcher tools stop at the report. You get a score, maybe some bullet points, and that's it. I wanted something I'd actually use the week before an interview, so Mock Interview Practice Mode turns the generated questions into a real practice loop - answer in your own words, get scored, see what to improve.
 
+**Stack:** React · Vite · Node.js · Express · MongoDB Atlas · Mongoose · Gemini API · JWT · Zod · Puppeteer · Jest · Vitest
+
 ## Architecture
 
 ```
@@ -62,6 +64,22 @@ npm run dev
 
 Backend checks all required env vars on boot and exits with a clear error if something's missing, instead of starting up broken.
 
+## Testing
+
+Backend: Jest, focused on the security-relevant paths rather than trying to cover everything - auth middleware (missing/blacklisted/expired token rejection), the IDOR fix on report/practice/copilot controllers (a request scoped to one user can never read or act on another user's report), and Zod validation edge cases.
+
+```bash
+cd Backend && npm test
+```
+
+Frontend: Vitest, covering pure logic (score-color boundary values, the Copilot chat history truncation logic that fixed a real validation bug during development).
+
+```bash
+cd Frontend && npm test
+```
+
+Both run in CI on every push/PR (`.github/workflows/ci.yml`), plus a build check for both apps.
+
 ## Security stuff I paid attention to
 
 - httpOnly/secure/sameSite cookie
@@ -72,6 +90,8 @@ Backend checks all required env vars on boot and exits with a clear error if som
 - Rate limiting, tighter on the AI-calling routes since those cost actual money per request
 - `helmet` for the usual security headers
 - One error handler for the whole app - logs the real error server-side, never leaks internals in the response
+- `trust proxy` set explicitly - matters once this is deployed behind a reverse proxy (Render/Railway/etc), otherwise rate limiting sees every request as coming from the proxy's IP and `secure` cookies never register as HTTPS
+- Graceful shutdown on SIGTERM/SIGINT - finishes in-flight requests and closes the DB connection cleanly instead of dropping requests on every redeploy
 
 ## Known limitations
 
