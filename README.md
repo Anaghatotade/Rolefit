@@ -40,9 +40,9 @@ Chat scoped to one specific report. Every message, the backend pulls that report
 
 ## Auth
 
-JWT in an httpOnly, sameSite=lax, secure-in-prod cookie. Logout writes the token to a Blacklist collection (JWT can't really be revoked server-side otherwise) with a TTL index so old entries clean themselves up automatically.
+JWT in an httpOnly, secure-in-prod cookie. sameSite is `lax` in local dev (frontend and backend are both on localhost, so they count as the same site) and `none` in production (frontend and backend live on different domains once deployed - e.g. vercel.app vs onrender.com - which makes every API call a cross-site request that `lax` would silently block). Logout writes the token to a Blacklist collection (JWT can't really be revoked server-side otherwise) with a TTL index so old entries clean themselves up automatically.
 
-One trade-off worth knowing: cookie auth needs CSRF mitigation, and sameSite=lax is good mitigation but not a complete guarantee, unlike sending a token in an Authorization header (which the browser never auto-attaches cross-site). Went with cookies anyway for the httpOnly XSS protection and because it's less to manage on the frontend.
+One trade-off worth knowing: cookie auth needs CSRF mitigation. `sameSite=lax` (dev) is decent mitigation but not a complete guarantee, and `sameSite=none` (prod, required for the cross-domain case above) provides none at all on its own - relying on `secure` + `httpOnly` + the app's own auth checks instead. A Bearer-token-in-header scheme sidesteps CSRF entirely since browsers never auto-attach headers cross-site. Went with cookies anyway for the httpOnly XSS protection and because it's less to manage on the frontend.
 
 ## Setup
 
@@ -117,6 +117,9 @@ Both run in CI on every push/PR (`.github/workflows/ci.yml`), plus a build check
 
 ### AI Readiness Report
 ![AI Readiness Report](docs/report.jpeg)
+
+### Mock Interview Practice
+![Mock Interview Practice](docs/practice.jpeg)
 
 ### Career Copilot
 ![Career Copilot](docs/copilot.jpeg)

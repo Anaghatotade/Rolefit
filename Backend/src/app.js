@@ -19,9 +19,18 @@ const app = express()
 // typical single-proxy deployment.
 app.set("trust proxy", 1)
 
+// .trim() matters here more than it looks like it should: a trailing
+// newline or stray space in the CLIENT_URL env var (very easy to introduce
+// by pasting a URL into a hosting dashboard) is an invalid character for an
+// HTTP header value. Without trimming, the `cors` package tries to set
+// Access-Control-Allow-Origin with that invalid value and Node throws
+// ERR_INVALID_CHAR on every single request — trimming here means a messy
+// env var value just works correctly instead of crashing the whole app.
+const clientUrl = (process.env.CLIENT_URL || "").trim()
+
 app.use(helmet())
 app.use(cors({
-    origin: process.env.CLIENT_URL, // env-based, not hardcoded — fixes the tutorial's localhost:5173 lock-in
+    origin: clientUrl, // env-based, not hardcoded — fixes the tutorial's localhost:5173 lock-in
     credentials: true
 }))
 // Explicit limit rather than Express's default — job descriptions/resume
