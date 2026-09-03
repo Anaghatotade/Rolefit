@@ -9,6 +9,7 @@ import Home from "./features/readiness/pages/Home"
 import ReportView from "./features/readiness/pages/ReportView"
 import PracticeSession from "./features/practice/pages/PracticeSession"
 import Copilot from "./features/copilot/pages/Copilot"
+import AdminDashboard from "./features/admin/pages/AdminDashboard"
 
 export default function App() {
     return (
@@ -22,6 +23,7 @@ export default function App() {
                     <Route path="/reports/:id" element={<AuthenticatedLayout><ReportView /></AuthenticatedLayout>} />
                     <Route path="/reports/:id/practice" element={<AuthenticatedLayout><PracticeSession /></AuthenticatedLayout>} />
                     <Route path="/reports/:id/copilot" element={<AuthenticatedLayout><Copilot /></AuthenticatedLayout>} />
+                    <Route path="/admin" element={<AuthenticatedLayout><AdminDashboard /></AuthenticatedLayout>} />
                 </Routes>
             </ToastProvider>
         </AuthProvider>

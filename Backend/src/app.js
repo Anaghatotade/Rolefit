@@ -7,6 +7,7 @@ const authRoutes = require("./routes/auth.routes")
 const reportRoutes = require("./routes/report.routes")
 const practiceRoutes = require("./routes/practice.routes")
 const copilotRoutes = require("./routes/copilot.routes")
+const adminRoutes = require("./routes/admin.routes")
 const errorMiddleware = require("./middlewares/error.middleware")
 
 const app = express()
@@ -46,6 +47,7 @@ app.use("/api/auth", authRoutes)
 app.use("/api/reports", reportRoutes)
 app.use("/api/practice", practiceRoutes)
 app.use("/api/copilot", copilotRoutes)
+app.use("/api/admin", adminRoutes)
 
 // Must be registered after all routes — Express only treats a 4-arg
 // middleware as an error handler if it's last in the chain.

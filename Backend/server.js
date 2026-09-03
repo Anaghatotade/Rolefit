@@ -1,3 +1,5 @@
+//server ko start karna
+
 require("dotenv").config()
 
 const mongoose = require("mongoose")
@@ -10,7 +12,7 @@ const app = require("./src/app")
 const PORT = process.env.PORT || 3000
 
 connectToDB().then(() => {
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {   //starts the server
         console.log(`RoleFit backend running on port ${PORT}`)
     })
 

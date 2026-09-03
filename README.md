@@ -40,6 +40,20 @@ Pick a question -> type an answer -> backend sends `{question, idealAnswer, user
 
 Chat scoped to one specific report. Every message, the backend pulls that report's job description, resume text, match score, and skill gaps into the prompt, so it's actually answering based on your application instead of giving generic advice. History is kept client-side and resent each message (capped at the last 20) - no chat session stored in the DB, kept it simple.
 
+### Database connection
+
+Lives at `Backend/src/config/database.js`, not `db.js` - same job, different name (a `config/` folder felt like the more honest home for it, next to `env.js`). One `mongoose.connect()` call at boot, with retry-with-backoff for transient connection failures (a brief network blip, or an Atlas IP whitelist change that hasn't fully propagated yet - not for real misconfigurations like a wrong password, which fail identically every retry). Graceful shutdown closes the connection cleanly on SIGTERM/SIGINT instead of dropping it mid-request on every redeploy.
+
+### Deployment architecture
+
+Frontend (Vercel) and backend (Render) are fully separate deployments - the frontend never talks to anything running on my machine. `VITE_API_URL` is baked into the frontend build at build time and points at the deployed backend's URL; the backend's `CLIENT_URL` env var points back at the deployed frontend's URL for CORS. Both sides fail loudly instead of silently if misconfigured: the backend won't boot without `MONGODB_URI`/`JWT_SECRET`/etc set (see `config/env.js`), and the frontend logs a clear console error in production if `VITE_API_URL` is missing, rather than silently falling back to `localhost:3000` - a real, sharp-edged trap in the original version of this file, since a build with that env var unset would only ever appear to "work" on a machine that happened to have a local backend running, and fail everywhere else with no obvious reason why.
+
+One real caveat worth knowing: Render's free tier spins the backend down after a period of inactivity, so the first request after idle time can take 30-50 seconds while it cold-starts. This isn't a bug - it's a hosting-tier trade-off worth mentioning if a demo feels slow on the very first click.
+
+### Admin activity dashboard
+
+`/admin` (not linked from the nav - reached directly by URL) shows total users, new signups in the last 7 days, active users in the last 24 hours, total reports generated, and recent signup/login/report activity. Access is gated by email address via the `ADMIN_EMAILS` env var (comma-separated), checked in `admin.middleware.js` after the normal auth check - deliberately not a full roles/permissions system, since this has one owner who needs to see real usage during a demo, not a multi-tenant admin hierarchy. No new event-logging collection was added: "new signups" reads `User.createdAt` (already existed), "active users" reads the one new field this added (`User.lastLoginAt`, set on every successful login), and the activity feed reads `ReadinessReport.createdAt` (already existed) - all queried at request time, nothing pre-aggregated or cached to drift out of sync.
+
 ## Auth
 
 JWT in an httpOnly, secure-in-prod cookie. sameSite is `lax` in local dev (frontend and backend are both on localhost, so they count as the same site) and `none` in production (frontend and backend live on different domains once deployed - e.g. vercel.app vs onrender.com - which makes every API call a cross-site request that `lax` would silently block). Logout writes the token to a Blacklist collection (JWT can't really be revoked server-side otherwise) with a TTL index so old entries clean themselves up automatically.
@@ -51,7 +65,7 @@ One trade-off worth knowing: cookie auth needs CSRF mitigation. `sameSite=lax` (
 **Backend**
 ```bash
 cd Backend
-cp .env.example .env   # MONGODB_URI, JWT_SECRET, GOOGLE_GENAI_API_KEY, CLIENT_URL
+cp .env.example .env   # MONGODB_URI, JWT_SECRET, GOOGLE_GENAI_API_KEY, CLIENT_URL, ADMIN_EMAILS (optional)
 npm install
 npm run dev
 ```
@@ -68,7 +82,7 @@ Backend checks all required env vars on boot and exits with a clear error if som
 
 ## Testing
 
-Backend: Jest, focused on the security-relevant paths rather than trying to cover everything - auth middleware (missing/blacklisted/expired token rejection), the IDOR fix on report/practice/copilot controllers (a request scoped to one user can never read or act on another user's report), and Zod validation edge cases.
+Backend: Jest, focused on the security-relevant paths rather than trying to cover everything - auth middleware (missing/blacklisted/expired token rejection), the IDOR fix on report/practice/copilot controllers (a request scoped to one user can never read or act on another user's report), the admin dashboard's email-based access control, and Zod validation edge cases.
 
 ```bash
 cd Backend && npm test
